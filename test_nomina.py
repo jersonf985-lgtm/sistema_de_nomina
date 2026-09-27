@@ -1,13 +1,13 @@
 """
 Modulo: test_nomina.py
-
+ 
 Pruebas unitarias del sistema de nomina (metodologia TDD).
 Ejecutar con: python -m unittest test_nomina -v
 """
-
+ 
 import unittest
 from datetime import date, timedelta
-
+ 
 from beneficios import BonoAlimentacion, BonoAntiguedad, BonoComisionExtra
 from deducciones import DeduccionARL, DeduccionSeguridadSocial
 from empleados import (
@@ -16,18 +16,18 @@ from empleados import (
     EmpleadoPorHoras,
     EmpleadoTemporal,
 )
-
+ 
 HACE_7_ANIOS = date.today() - timedelta(days=365 * 7)
 HACE_2_ANIOS = date.today() - timedelta(days=365 * 2)
-
-
+ 
+ 
 class TestEmpleadoAsalariado(unittest.TestCase):
     def test_salario_bruto_es_el_salario_mensual(self):
         empleado = EmpleadoAsalariado(
             id_empleado="E1", nombre="Ana", fecha_ingreso=HACE_2_ANIOS, salario_mensual=2_000_000
         )
         self.assertEqual(empleado.calcular_salario_bruto(), 2_000_000)
-
+ 
     def test_recibe_bono_antiguedad_con_mas_de_5_anios(self):
         empleado = EmpleadoAsalariado(
             id_empleado="E2",
@@ -37,7 +37,7 @@ class TestEmpleadoAsalariado(unittest.TestCase):
             beneficios=[BonoAntiguedad()],
         )
         self.assertAlmostEqual(empleado.calcular_total_beneficios(), 200_000)
-
+ 
     def test_no_recibe_bono_antiguedad_con_menos_de_5_anios(self):
         empleado = EmpleadoAsalariado(
             id_empleado="E3",
@@ -47,14 +47,14 @@ class TestEmpleadoAsalariado(unittest.TestCase):
             beneficios=[BonoAntiguedad()],
         )
         self.assertEqual(empleado.calcular_total_beneficios(), 0)
-
+ 
     def test_salario_mensual_negativo_lanza_error(self):
         with self.assertRaises(ValueError):
             EmpleadoAsalariado(
                 id_empleado="E4", nombre="Pedro", fecha_ingreso=HACE_2_ANIOS, salario_mensual=-100
             )
-
-
+ 
+ 
 class TestEmpleadoPorHoras(unittest.TestCase):
     def test_sin_horas_extra(self):
         empleado = EmpleadoPorHoras(
@@ -65,7 +65,7 @@ class TestEmpleadoPorHoras(unittest.TestCase):
             horas_trabajadas=40,
         )
         self.assertEqual(empleado.calcular_salario_bruto(), 400_000)
-
+ 
     def test_con_horas_extra_recarga_1_5(self):
         empleado = EmpleadoPorHoras(
             id_empleado="H2",
@@ -76,7 +76,7 @@ class TestEmpleadoPorHoras(unittest.TestCase):
         )
         esperado = (40 * 10_000) + (8 * 10_000 * 1.5)
         self.assertEqual(empleado.calcular_salario_bruto(), esperado)
-
+ 
     def test_horas_negativas_lanza_error(self):
         with self.assertRaises(ValueError):
             EmpleadoPorHoras(
@@ -86,7 +86,7 @@ class TestEmpleadoPorHoras(unittest.TestCase):
                 tarifa_hora=10_000,
                 horas_trabajadas=-5,
             )
-
+ 
     def test_no_recibe_bonos(self):
         empleado = EmpleadoPorHoras(
             id_empleado="H4",
@@ -96,7 +96,7 @@ class TestEmpleadoPorHoras(unittest.TestCase):
             horas_trabajadas=40,
         )
         self.assertEqual(empleado.calcular_total_beneficios(), 0)
-
+ 
     def test_fondo_ahorro_si_acepta_y_mas_de_1_anio(self):
         empleado = EmpleadoPorHoras(
             id_empleado="H5",
@@ -107,7 +107,7 @@ class TestEmpleadoPorHoras(unittest.TestCase):
             acepta_fondo_ahorro=True,
         )
         self.assertGreater(empleado.calcular_aporte_fondo_ahorro(), 0)
-
+ 
     def test_fondo_ahorro_no_aplica_si_no_acepta(self):
         empleado = EmpleadoPorHoras(
             id_empleado="H6",
@@ -118,8 +118,8 @@ class TestEmpleadoPorHoras(unittest.TestCase):
             acepta_fondo_ahorro=False,
         )
         self.assertEqual(empleado.calcular_aporte_fondo_ahorro(), 0)
-
-
+ 
+ 
 class TestEmpleadoPorComision(unittest.TestCase):
     def test_salario_bruto_base_mas_comision(self):
         empleado = EmpleadoPorComision(
@@ -131,7 +131,7 @@ class TestEmpleadoPorComision(unittest.TestCase):
             porcentaje_comision=0.10,
         )
         self.assertEqual(empleado.calcular_salario_bruto(), 1_500_000)
-
+ 
     def test_bono_extra_si_ventas_superan_20_millones(self):
         empleado = EmpleadoPorComision(
             id_empleado="C2",
@@ -143,7 +143,7 @@ class TestEmpleadoPorComision(unittest.TestCase):
             beneficios=[BonoComisionExtra()],
         )
         self.assertEqual(empleado.calcular_total_beneficios(), 750_000)
-
+ 
     def test_sin_bono_extra_si_ventas_no_superan_el_umbral(self):
         empleado = EmpleadoPorComision(
             id_empleado="C3",
@@ -155,7 +155,7 @@ class TestEmpleadoPorComision(unittest.TestCase):
             beneficios=[BonoComisionExtra()],
         )
         self.assertEqual(empleado.calcular_total_beneficios(), 0)
-
+ 
     def test_ventas_negativas_lanza_error(self):
         with self.assertRaises(ValueError):
             EmpleadoPorComision(
@@ -166,8 +166,8 @@ class TestEmpleadoPorComision(unittest.TestCase):
                 ventas=-1,
                 porcentaje_comision=0.10,
             )
-
-
+ 
+ 
 class TestEmpleadoTemporal(unittest.TestCase):
     def test_salario_bruto_fijo_sin_beneficios(self):
         empleado = EmpleadoTemporal(
@@ -179,22 +179,26 @@ class TestEmpleadoTemporal(unittest.TestCase):
         )
         self.assertEqual(empleado.calcular_salario_bruto(), 1_800_000)
         self.assertEqual(empleado.calcular_total_beneficios(), 0)
-
-
+ 
+ 
 class TestDeducciones(unittest.TestCase):
     def test_seguridad_social_es_4_por_ciento(self):
         deduccion = DeduccionSeguridadSocial()
         self.assertEqual(deduccion.calcular(None, 1_000_000), 40_000)
-
+ 
+    def test_arl_valor_por_defecto_es_2_por_ciento(self):
+        deduccion = DeduccionARL()
+        self.assertEqual(deduccion.calcular(None, 1_000_000), 20_000)
+ 
     def test_arl_usa_porcentaje_configurable(self):
         deduccion = DeduccionARL(porcentaje=0.01)
         self.assertEqual(deduccion.calcular(None, 1_000_000), 10_000)
-
+ 
     def test_arl_porcentaje_negativo_lanza_error(self):
         with self.assertRaises(ValueError):
             DeduccionARL(porcentaje=-0.01)
-
-
+ 
+ 
 class TestSalarioNeto(unittest.TestCase):
     def test_neto_combina_bruto_beneficios_y_deducciones(self):
         empleado = EmpleadoAsalariado(
@@ -210,7 +214,8 @@ class TestSalarioNeto(unittest.TestCase):
         deducciones = 0.04 * bruto
         esperado = bruto + beneficios - deducciones
         self.assertAlmostEqual(empleado.calcular_salario_neto(), esperado)
-
-
+ 
+ 
 if __name__ == "__main__":
     unittest.main()
+ 
